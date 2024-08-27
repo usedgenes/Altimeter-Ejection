@@ -8,7 +8,6 @@ enum LogType {
   Altitude,
   Accelerometer,
   Gyroscope,
-  Pid,
   Events,
 };
 
@@ -23,7 +22,6 @@ SPIClass vspi;
 public:
   bool Init(SPIClass & vspi);
   void log(LogType type, String _message, unsigned long time);
-  void testLog();
 };
 
 #endif

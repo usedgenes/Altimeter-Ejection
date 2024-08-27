@@ -1,7 +1,7 @@
 #include "Altimeter.h"
 
 bool Altimeter::Init(SPIClass * vspi) {
-  if (!bmp.begin_SPI(BMP_CS, vspi)) {  // software SPI mode
+  if (!bmp.begin_SPI(BMP_CS, vspi)) { 
     return false;
   }
   bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);

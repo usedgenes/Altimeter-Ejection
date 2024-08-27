@@ -1,6 +1,6 @@
 #include "Bluetooth.h"
 
-void Bluetooth::Init(Servos *_servos, IMU *_imu, Altimeter *_altimeter,bool *_armed, bool *_bluetoothConnected, bool *_sendLoopTime, bool *_sendBluetoothBMI088, bool *_sendBluetoothOrientation, bool *_sendBluetoothAltimeter, bool *_bluetoothBypassOnPad, bool *_bluetoothBypassTVCActive, bool *_bluetoothBypassCoasting, bool *_bluetoothBypassParachuteOut) {
+void Bluetooth::Init(Servos *_servos, IMU *_imu, Altimeter *_altimeter, bool *_armed, bool *_bluetoothConnected, bool *_sendLoopTime, bool *_sendBluetoothBMI088, bool *_sendBluetoothAltimeter, bool *_bluetoothBypassOnPad, bool *_bluetoothBypassMotorActive, bool *_bluetoothBypassCoasting, bool *_bluetoothBypassParachuteOut) {
   servos = _servos;
   imu = _imu;
   altimeter = _altimeter;
@@ -8,10 +8,9 @@ void Bluetooth::Init(Servos *_servos, IMU *_imu, Altimeter *_altimeter,bool *_ar
   bluetoothConnected = _bluetoothConnected;
   sendLoopTime = _sendLoopTime;
   sendBluetoothBMI088 = _sendBluetoothBMI088;
-  sendBluetoothOrientation = _sendBluetoothOrientation;
   sendBluetoothAltimeter = _sendBluetoothAltimeter;
   bluetoothBypassOnPad = _bluetoothBypassOnPad;
-  bluetoothBypassTVCActive = _bluetoothBypassTVCActive;
+  bluetoothBypassMotorActive = _bluetoothBypassMotorActive;
   bluetoothBypassCoasting = _bluetoothBypassCoasting;
   bluetoothBypassParachuteOut = _bluetoothBypassParachuteOut;
 
@@ -35,7 +34,7 @@ void Bluetooth::Init(Servos *_servos, IMU *_imu, Altimeter *_altimeter,bool *_ar
   pBMP390->setCallbacks(new BMP390Callbacks(altimeter));
 
   pUtilities = pService->createCharacteristic(UTILITIES_UUID, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY | BLECharacteristic::PROPERTY_WRITE);
-  pUtilities->setCallbacks(new UtilitiesCallbacks(armed, sendLoopTime, sendBluetoothBMI088, sendBluetoothOrientation, sendBluetoothAltimeter, sendBluetoothPID, bluetoothBypassOnPad, bluetoothBypassTVCActive, bluetoothBypassCoasting, bluetoothBypassParachuteOut));
+  pUtilities->setCallbacks(new UtilitiesCallbacks(armed, sendLoopTime, sendBluetoothBMI088, sendBluetoothAltimeter, bluetoothBypassOnPad, bluetoothBypassMotorActive, bluetoothBypassCoasting, bluetoothBypassParachuteOut));
 
   pService->start();
 

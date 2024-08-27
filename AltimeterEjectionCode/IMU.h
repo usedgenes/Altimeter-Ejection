@@ -14,12 +14,9 @@ private:
   Bmi088Accel *accel;
   Bmi088Gyro *gyro;
 
-  float gyroscopeCorrected[3] = { 0, 0, 0 };
-
 public:
   bool Init(SPIClass & _hspi);
   void getIMUData(float accelerometer[], float gyroscope[]);
-  void getCorrectedIMU();
 };
 
 #endif

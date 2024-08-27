@@ -3,7 +3,7 @@
 void Servos::Init() {
   servo.write(OPEN_POSITION);
   servo.attach(SERVO_PIN);
-  servo.write(parachuteServoOpenPosition);
+  servo.write(OPEN_POSITION);
 }
 
 void Servos::openServo() {

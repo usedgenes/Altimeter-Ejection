@@ -9,7 +9,6 @@
 #include "Servos.h"
 #include "Altimeter.h"
 #include "Logger.h"
-#include "PID.h"
 
 class Bluetooth {
 #define DEVICE_NAME "ESP_32"
@@ -27,20 +26,20 @@ private:
   Servos *servos;
   IMU *imu;
   Altimeter *altimeter;
+
   bool *armed;
   bool *bluetoothConnected;
   bool *sendBluetoothData;
   bool *bluetoothBypassOnPad;
-  bool *bluetoothBypassTVCActive;
+  bool *bluetoothBypassMotorActive;
   bool *bluetoothBypassCoasting;
   bool *bluetoothBypassParachuteOut;
   bool *sendLoopTime;
   bool *sendBluetoothBMI088;
-  bool *sendBluetoothOrientation;
   bool *sendBluetoothAltimeter;
 
 public:
-  void Init(Servos *_servos, IMU *_imu, Altimeter *_altimeter, bool *_armed, bool *_bluetoothConnected, bool *_sendLoopTime, bool *_sendBluetoothBMI088, bool *_sendBluetoothOrientation, bool *_sendBluetoothAltimeter, bool *_bluetoothBypassOnPad, bool *_bluetoothBypassTVCActive, bool *_bluetoothBypassCoasting, bool *_bluetoothBypassParachuteOut);
+  void Init(Servos *_servos, IMU *_imu, Altimeter *_altimeter, bool *_armed, bool *_bluetoothConnected, bool *_sendLoopTime, bool *_sendBluetoothBMI088, bool *_sendBluetoothAltimeter, bool *_bluetoothBypassOnPad, bool *_bluetoothBypassMotorActive, bool *_bluetoothBypassCoasting, bool *_bluetoothBypassParachuteOut);
   void writeServo(String message);
   void writeIMU(String message);
   void writeAltimeter(String message);
@@ -71,7 +70,7 @@ class UtilitiesCallbacks : public BLECharacteristicCallbacks {
 private:
   bool *armed;
   bool *bluetoothBypassOnPad;
-  bool *bluetoothBypassTVCActive;
+  bool *bluetoothBypassMotorActive;
   bool *bluetoothBypassCoasting;
   bool *bluetoothBypassParachuteOut;
   bool *sendLoopTime;
@@ -81,14 +80,13 @@ private:
 
 public:
   void (*resetFunc)(void) = 0;
-  UtilitiesCallbacks(bool *_armed, bool *_sendLoopTime, bool *_sendBluetoothBMI088, bool *_sendBluetoothOrientation, bool *_sendBluetoothAltimeter, bool *_bluetoothBypassOnPad, bool *_bluetoothBypassTVCActive, bool *_bluetoothBypassCoasting, bool *_bluetoothBypassParachuteOut) {
+  UtilitiesCallbacks(bool *_armed, bool *_sendLoopTime, bool *_sendBluetoothBMI088, bool *_sendBluetoothAltimeter, bool *_bluetoothBypassOnPad, bool *_bluetoothBypassMotorActive, bool *_bluetoothBypassCoasting, bool *_bluetoothBypassParachuteOut) {
     armed = _armed;
     sendLoopTime = _sendLoopTime;
     sendBluetoothBMI088 = _sendBluetoothBMI088;
-    sendBluetoothOrientation = _sendBluetoothOrientation;
     sendBluetoothAltimeter = _sendBluetoothAltimeter;
     bluetoothBypassOnPad = _bluetoothBypassOnPad;
-    bluetoothBypassTVCActive = _bluetoothBypassTVCActive;
+    bluetoothBypassMotorActive = _bluetoothBypassMotorActive;
     bluetoothBypassCoasting = _bluetoothBypassCoasting;
     bluetoothBypassParachuteOut = _bluetoothBypassParachuteOut;
   };
@@ -103,7 +101,7 @@ public:
     } else if (value == "Bypass Pad") {
       *bluetoothBypassOnPad = true;
     } else if (value == "Bypass TVC") {
-      *bluetoothBypassTVCActive = true;
+      *bluetoothBypassMotorActive = true;
     } else if (value == "Bypass Coasting") {
       *bluetoothBypassCoasting = true;
     } else if (value == "Bypass Parachute") {

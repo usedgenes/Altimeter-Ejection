@@ -30,9 +30,6 @@ void Logger::log(LogType type, String _message, unsigned long time) {
     case Events:
       filePath = "/Events.txt";
       break;
-    case Pid:
-      filePath = "/Pid.txt";
-      break;
   }
   File file = SD.open(filePath, FILE_APPEND);
   String message = String(time) + "\t" + _message;

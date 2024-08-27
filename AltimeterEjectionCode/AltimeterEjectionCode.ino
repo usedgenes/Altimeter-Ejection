@@ -3,7 +3,6 @@
 #include "IMU.h"
 #include "Servos.h"
 #include "Altimeter.h"
-#include "Calculations.h"
 #include "Logger.h"
 #include "Utilities.h"
 
@@ -16,14 +15,14 @@
 #define SPI2_MOSI 26
 #define SPI2_CS 33
 
-#define BLUETOOTH_REFRESH_THRESHOLD 50
+#define TARGET_ALTITUDE 240.8
 #define LAUNCH_ALTITUDE_THRESHOLD_METERS 4
 #define MOTOR_BURN_TIME_MILLISECONDS 3000
 #define PARACHUTE_EJECTION_VELOCITY_THRESHOLD 3
 #define RECOVERY_ALTITUDE_THRESHOLD_METERS 1000
 
 #define ON_PAD_DATA_FREQUENCY 1000
-#define TVC_ACTIVE_DATA_FREQUENCY 1000
+#define MOTOR_ACTIVE_DATA_FREQUENCY 1000
 #define COASTING_DATA_FREQUENCY 1000
 #define PARACHUTE_OUT_DATA_FREQUENCY 1000
 #define ON_GROUND_DATA_FREQUENCY 1000
@@ -35,7 +34,6 @@ Bluetooth bluetooth;
 IMU imu;
 Servos servos;
 Altimeter altimeter;
-Calculations calculations;
 Logger logger;
 Utilities utilities;
 
@@ -54,26 +52,23 @@ float previousAltitude = 0;
 
 float accelerometer[] = { 0, 0, 0 };
 float gyroscope[] = { 0, 0, 0 };
-float pitch = 0, roll = 0;
-float pitchCommand = 0, rollCommand = 0;
-float servo0Position = 0, servo1Position = 0;
 float apogee = 0;
 
 bool sendBluetoothData = false;
 bool bluetoothConnected = false;
 bool armed = false;
 bool bluetoothBypassOnPad = false;
-bool bluetoothBypassTVCActive = false;
+bool bluetoothBypassMotorActive = false;
 bool bluetoothBypassCoasting = false;
 bool bluetoothBypassParachuteOut = false;
 bool sendLoopTime = false;
 bool sendBluetoothBMI088 = false;
 bool sendBluetoothAltimeter = false;
-bool sendBluetoothOrientation = false;
+bool ejectedAltimeter = false;
 
 void setup() {
   Serial.begin(115200);
-  bluetooth.Init(&servos, &imu, &altimeter,&armed, &bluetoothConnected, &sendLoopTime, &sendBluetoothBMI088, &sendBluetoothOrientation, &sendBluetoothAltimeter, &bluetoothBypassOnPad, &bluetoothBypassTVCActive, &bluetoothBypassCoasting, &bluetoothBypassParachuteOut);
+  bluetooth.Init(&servos, &imu, &altimeter,&armed, &bluetoothConnected, &sendLoopTime, &sendBluetoothBMI088, &sendBluetoothAltimeter, &bluetoothBypassOnPad, &bluetoothBypassMotorActive, &bluetoothBypassCoasting, &bluetoothBypassParachuteOut);
   while (!bluetoothConnected) {
     delay(1000);
   }
@@ -83,8 +78,7 @@ void setup() {
   hspi->begin(SPI2_SCK, SPI2_MISO, SPI2_MOSI, SPI2_CS);
   utilities.Init();
   servos.Init();
-  pitchPID.Init(1, 0.5, 0.2);
-  rollPID.Init(1, 0.5, 0.2);
+
   if (!imu.Init(*hspi)) {
     bluetooth.writeUtilitiesNotifications("IMU Initialization Error");
     Serial.println("IMU Initialization Error");
@@ -107,6 +101,7 @@ void setup() {
     logData(ON_PAD_DATA_FREQUENCY);
     delay(100);
   }
+
   previousTime = 0;
   launchAltitude = altimeter.getAltitude();
   bluetooth.writeUtilitiesNotifications("Launch Altitude: " + String(launchAltitude));
@@ -122,11 +117,11 @@ void setup() {
   }
 
   motorIgnitionTime = millis();
-  bluetooth.writeUtilitiesEvents("TVC Active");
-  logger.log(Events, "TVC Active", millis());
-  Serial.println("Thrust Vector Active");
-  while (millis() - motorIgnitionTime < MOTOR_BURN_TIME_MILLISECONDS && !bluetoothBypassTVCActive) {
-    thrustVectorActive();
+  bluetooth.writeUtilitiesEvents("Motor Active");
+  logger.log(Events, "Motor Active", millis());
+  Serial.println("Motor Vector Active");
+  while (millis() - motorIgnitionTime < MOTOR_BURN_TIME_MILLISECONDS && !bluetoothBypassMotorActive) {
+    motorActive();
   }
 
   bluetooth.writeUtilitiesEvents("Coasting");
@@ -134,10 +129,12 @@ void setup() {
   Serial.println("Coasting");
   while ((altimeter.getFilteredAltitude() - previousAltitude) / loopTime < PARACHUTE_EJECTION_VELOCITY_THRESHOLD && !bluetoothBypassCoasting) {
     coasting();
+    if(currentAltitude >= TARGET_ALTITUDE && !ejectedAltimeter) {
+      ejectAltimeter();
+      ejectedAltimeter = true;
+      logger.log(Events, "Deploying Parachute", millis());
+    }
   }
-
-  logger.log(Events, "Deploying Parachute", millis());
-  ejectAltimeter();
 
   bluetooth.writeUtilitiesEvents("Parachute Out");
   logger.log(Events, "Parachute Out", millis());
@@ -162,9 +159,9 @@ void onPad() {
   logData(ON_PAD_DATA_FREQUENCY);
 }
 
-void thrustVectorActive() {
+void motorActive() {
   dataLoop();
-  logData(TVC_ACTIVE_DATA_FREQUENCY);
+  logData(MOTOR_ACTIVE_DATA_FREQUENCY);
 }
 
 void coasting() {
@@ -174,6 +171,7 @@ void coasting() {
 
 void ejectAltimeter() {
   servos.openServo();
+  logger.log(Events, "Altimeter Ejected", currentTime);
 }
 
 void parachuteOut() {
@@ -193,7 +191,6 @@ void dataLoop() {
   previousTime = currentTime;
 
   imu.getIMUData(accelerometer, gyroscope);
-  calculations.applyKalmanFilter(accelerometer, gyroscope, loopTime, pitch, roll);
   currentAltitude = altimeter.getAltitude();
   altimeter.getTempAndPressure(currentTemperature, currentPressure);
 }
@@ -209,11 +206,6 @@ void logData(int dataLoggingFrequencyInMilliseconds) {
       bluetooth.writeIMU("93" + String(gyroscope[0]));
       bluetooth.writeIMU("94" + String(gyroscope[1]));
       bluetooth.writeIMU("95" + String(gyroscope[2]));
-    }
-    if (sendBluetoothOrientation) {
-      Serial.println("Sending Bluetooth Orientation");
-      bluetooth.writeIMU("96" + String(pitch));
-      bluetooth.writeIMU("97" + String(roll));
     }
     if (sendBluetoothAltimeter) {
       Serial.println("Sending Bluetooth Altimeter");
@@ -235,6 +227,5 @@ void logData(int dataLoggingFrequencyInMilliseconds) {
 void printToSerial() {
   Serial.println("Accelerometer: " + String(accelerometer[0]) + "\t" + String(accelerometer[1]) + "\t" + String(accelerometer[2]));
   Serial.println("Gyroscope: " + String(gyroscope[0]) + "\t" + String(gyroscope[1]) + "\t" + String(gyroscope[2]));
-  Serial.println("Pitch: " + String(pitch) + "\tRoll: " + String(roll));
   Serial.println("Altitude: " + String(currentAltitude) + "\tTemperature: " + String(currentTemperature) + "\tPressure: " + String(currentPressure));
 }

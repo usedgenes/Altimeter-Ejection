@@ -6,7 +6,7 @@
 class Servos {
 private:
   #define SERVO_PIN 13
-  #define BLOCK_POSITION 90
+  #define BLOCKING_POSITION 90
   #define OPEN_POSITION 50
   Servo servo;
   
