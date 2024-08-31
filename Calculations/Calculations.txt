@@ -16,3 +16,29 @@ Springs I'm using: https://www.amazon.com/uxcell-Compression-Stainless-Compresse
 66.4N Load Capacity, 1.66 N/mm spring rate
 If I use two of the springs, I should have more than enough force to successfully eject the altimeter.
 
+
+------------------------------------------------------------------------------------------------------------------
+
+Actual velocity:
+
+10.053 seconds - around 1.5 inch mark
+10.116 seconds - around 12 inch mark
+
+Change in distance: 10.5 inches
+Change in time: 0.063 seconds
+
+Velocity = 13.8889 ft/s = 4.233 m/s
+
+
+
+Second test:
+3.86 seconds - 0 cm mark
+3.87 seconds - around 10cm mark
+
+Around 10 m/s
+
+Weighs 18 grams right now
+But if I get it down to 12 grams, then using conservation of momentum, 0.018*10 = v * 0.012 
+v = 15 m/s
+
+
