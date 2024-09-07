@@ -12,3 +12,7 @@ Parts:
 	-70mm long spring, 33N
 	-7.4V Li-Po battery for power
 	-Various 3D-printed parts
+
+Link to CAD files: https://cad.onshape.com/documents/b6715e9ead263e131b661fc1/w/7e9a882b90b7b5f756709f98/e/da37a1c2cca26b99529e663e?renderMode=0&uiState=66dbf5770e1714795c1dc348 
+
+![](https://github.com/usedgenes/Altimeter-Ejection/blob/main/Picture.png)
