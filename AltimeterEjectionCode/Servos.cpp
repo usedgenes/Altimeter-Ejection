@@ -12,6 +12,10 @@ void Servos::openServo() {
 }
 
 void Servos::closeServo() {
-  servo.write(BLOCKING_POSITION);
+  servo.write(CLOSED_POSITION);
   Serial.println("Closed Parachute");
+}
+
+void Servos::writeServo(int position) {
+  servo.write(position);
 }

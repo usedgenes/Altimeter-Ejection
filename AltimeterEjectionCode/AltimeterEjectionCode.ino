@@ -94,7 +94,7 @@ void setup() {
     Serial.println("SD Initialization Error");
   }
 
-  utilities.initialized();
+  // utilities.initialized();
 
   while (!armed) {
     dataLoop();
@@ -108,7 +108,7 @@ void setup() {
   logger.log(Events, "Launch Altitude: " + String(launchAltitude), millis());
   Serial.println("Launch Altitude: " + String(launchAltitude));
 
-  utilities.armed();
+  // utilities.armed();
   bluetooth.writeUtilitiesEvents("On Pad");
   logger.log(Events, "On Pad", millis());
   Serial.println("On Pad");

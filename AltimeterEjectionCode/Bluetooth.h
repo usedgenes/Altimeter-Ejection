@@ -139,6 +139,8 @@ public:
       servos->openServo();
     } else if (value == "Close Servo") {
       servos->closeServo();
+    } else if (value.substring(0, 1) == "4") {
+      servos->writeServo(value.substring(1, value.length()).toInt());
     } 
   };
 };

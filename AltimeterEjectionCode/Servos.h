@@ -5,15 +5,16 @@
 
 class Servos {
 private:
-  #define SERVO_PIN 13
-  #define BLOCKING_POSITION 90
-  #define OPEN_POSITION 50
+  #define SERVO_PIN 23
+  #define CLOSED_POSITION 110
+  #define OPEN_POSITION 60
   Servo servo;
   
 public:
   void Init();
   void openServo();
   void closeServo();
+  void writeServo(int position);
 };
 
 
